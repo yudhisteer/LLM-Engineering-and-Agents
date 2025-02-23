@@ -13,8 +13,10 @@ client = OpenAI(api_key=api_key)
 
 
 def get_chat_completion(
-    messages: list[dict], model: str = "gpt-4o-mini", temperature: float = 0
-) -> str:
+    messages: list[dict], 
+    model: str = "gpt-4o-mini", 
+    temperature: float = 0
+    ) -> str:
     """
     Get a chat completion from OpenAI.
 
