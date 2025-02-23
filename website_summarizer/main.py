@@ -42,7 +42,7 @@ if __name__ == "__main__":
     Respond in markdown."
 
     # Configure the messages
-    messages = configure_message(website, system_prompt) # [{"role": "system", "content": "You are an..."}, {"role": "user", "content": "You are looking..."}]
+    messages = configure_message(website, system_prompt)  # Changed from configure_messages to configure_message
     # print("Messages: ", messages)
 
     # Summarize the website
