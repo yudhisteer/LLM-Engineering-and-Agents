@@ -1,19 +1,19 @@
 import os
+
 import requests
-from dotenv import load_dotenv
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 from IPython.display import Markdown, display
 from openai import OpenAI
-
-from utils import get_chat_completion, configure_user_prompt, configure_message, summarize_website
+from utils import *
 from website import Website
 
 # Based on: https://github.com/ed-donner/llm_engineering/blob/main/week1/day1.ipynb
 
 if __name__ == "__main__":
-    website_url = "https://forbes.com/"
+    WEBSITE_URL = "https://forbes.com/"
     # Create a website object
-    website = Website(website_url)
+    website = Website(WEBSITE_URL)
     # print("Title: ", website.title)
     # print("Text: ", website.text)
 
@@ -42,9 +42,52 @@ if __name__ == "__main__":
     Respond in markdown."
 
     # Configure the messages
-    messages = configure_message(website, system_prompt)  # Changed from configure_messages to configure_message
+    messages = configure_message(system_prompt, user_prompt)
     # print("Messages: ", messages)
 
     # Summarize the website
-    response = summarize_website(website_url, system_prompt)
-    print("Response: ", response)
+    response = summarize_website(system_prompt, user_prompt)
+    # print("Response: ", response)
+
+    # ------------------------------------------ Part 2 ------------------------------------------#
+    # print("Contents: ", website.get_contents())
+    # print("Links: ", website.links)
+
+    # One-shot prompt - we provide one example of the output
+    system_prompt_for_links = "You are provided with a list of links found on a webpage. \
+    You are able to decide which of the links would be most relevant to include in a brochure about the company, \
+    such as links to an About page, or a Company page, or Careers/Jobs pages.\n"
+    system_prompt_for_links += "You should respond in JSON as in this example:"
+    system_prompt_for_links += """
+    {
+        "links": [
+            {"type": "about page", "url": "https://full.url/goes/here/about"},
+            {"type": "careers page": "url": "https://another.full.url/careers"}
+        ]
+    }
+    """
+    # print(system_prompt_for_links)
+
+    # Configure the user prompt for the links
+    user_prompt_for_links = configure_user_prompt_for_links(website)
+    # print("User Prompt for Links: ", user_prompt_for_links)
+
+    # Configure the system prompt for the useful links
+    useful_links_response = useful_links(system_prompt_for_links, user_prompt_for_links)
+    # print("Useful Links: ", useful_links_response)
+
+    # Extract all details
+    all_details = extract_all_details(WEBSITE_URL, system_prompt_for_links, user_prompt_for_links)
+    # print("All Details: ", all_details)
+
+    system_prompt = "You are an assistant that analyzes the contents of several relevant pages from a company website \
+    and creates a short brochure about the company for prospective customers, investors and recruits. Respond in markdown.\
+    Include details of company culture, customers and careers/jobs if you have the information."
+
+    user_prompt = configure_user_prompt_brochure(
+        WEBSITE_URL, "Forbes", system_prompt_for_links, user_prompt_for_links
+    )
+    # print("User Prompt for Brochure: ", user_prompt)
+
+    brochure = create_brochure(system_prompt, user_prompt)
+    print("Brochure: ", brochure)
