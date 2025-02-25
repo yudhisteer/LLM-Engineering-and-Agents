@@ -21,16 +21,19 @@ if not google_api_key:
 if not deepseek_api_key:
     raise ValueError("DeepSeek API key not found in environment variables")
 
-
+# Initialize clients
 openai_client = OpenAI(api_key=openai_api_key)
 anthropic_client = Anthropic(api_key=anthropic_api_key)
 genai.configure(api_key=google_api_key)
 deepseek_via_openai_client = OpenAI(api_key=deepseek_api_key, base_url="https://api.deepseek.com")
 
-def get_gemini_list_models() -> None:
+
+
+def list_gemini_models() -> None:
     for m in genai.list_models():
         if "generateContent" in m.supported_generation_methods:
             print(m.name)
+
 
 def get_gemini_response(user_prompt: str, model: str = "gemini-2.0-flash-exp") -> str:
     try:
@@ -71,28 +74,35 @@ def get_anthropic_response(
     temperature: float = 0.7,
     max_tokens: int = 100,
     ) -> str:
-    message = anthropic_client.messages.create(
-        model=model,
-        max_tokens=max_tokens,
-        temperature=temperature,
-        system=system_message,
-        messages=[
-            {"role": "user", "content": user_prompt},
-        ],
-    )
-    return message.content[0].text
+    try:
+        message = anthropic_client.messages.create(
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            system=system_message,
+            messages=[
+                {"role": "user", "content": user_prompt},
+                ],
+            )
+        return message.content[0].text
+
+    except Exception as e:
+        raise Exception(f"Error getting anthropic response: {str(e)}")
 
 
 def get_deepseek_response(system_message: str, user_prompt: str, model: str = "deepseek-chat", temperature: float = 0.0) -> str:
-    response = deepseek_via_openai_client.chat.completions.create(
-        model=model,
-        messages=[
+    try:
+        response = deepseek_via_openai_client.chat.completions.create(
+            model=model,
+            messages=[
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_prompt}
             ],
-        temperature=temperature,
-        )
+            temperature=temperature,
+            )
+        return response.choices[0].message.content
 
-    return response.choices[0].message.content
+    except Exception as e:
+        raise Exception(f"Error getting deepseek response: {str(e)}")
 
 

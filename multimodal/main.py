@@ -15,7 +15,7 @@ if __name__ == "__main__":
     print("Gemini response: ", response)
 
     # List all models for Gemini
-    get_gemini_list_models()
+    list_gemini_models()
 
     response = get_deepseek_response(system_message, user_prompt, model="deepseek-reasoner")
     print("DeepSeek response: ", response)
