@@ -72,10 +72,9 @@ def configure_user_prompt_brochure(
 ) -> str:
     user_prompt = f"You are looking at a company called: {company_name}\n"
     user_prompt += f"Here are the contents of its landing page and other relevant pages; use this information to build a short brochure of the company in markdown.\n"
-    user_prompt += extract_all_details(url, 
-                                       system_prompt_for_links, 
-                                       user_prompt_for_links
-                                       )
+    user_prompt += extract_all_details(
+        url, system_prompt_for_links, user_prompt_for_links
+    )
     user_prompt = user_prompt[:5_000]  # Truncate if more than 5,000 characters
     return user_prompt
 
@@ -170,35 +169,14 @@ def check_ollama_model_exists(model_name: str) -> bool:
 
 
 def get_ollama_response(model: str, messages: list[dict]) -> str:
-    """
-    Get the response from the Ollama model.
-
-    Parameters:
-    model (str): The name of the model to use for generating the response.
-    messages (list[dict]): A list of messages to send to the model, where each message is a dictionary
-                           containing a 'role' (either 'user' or 'system') and 'content' (the message text).
-                           Ex: [{"role": "user", "content": "Hello, how are you?"}]
-
-    Returns:
-    str: The generated response from the model, or an error message if the request fails.
-    """
-
     try:
         response = requests.post(
             url="http://localhost:11434/api/chat",
             headers={"Content-Type": "application/json"},
-            json={"model": model, "messages": messages},
+            json={"model": model, "messages": messages, "stream": False},
         )
         response.raise_for_status()
-
-        full_content = ""
-        for chunk in response.iter_lines():
-            if chunk:
-                data = json.loads(chunk)
-                if "message" in data and "content" in data["message"]:
-                    full_content += data["message"]["content"]
-
-        return full_content
+        return response.json()["message"]["content"]
     except requests.RequestException as e:
         return f"Request failed: {str(e)}"
     except json.JSONDecodeError:

@@ -77,7 +77,9 @@ if __name__ == "__main__":
     # print("Useful Links: ", useful_links_response)
 
     # Extract all details
-    all_details = extract_all_details(WEBSITE_URL, system_prompt_for_links, user_prompt_for_links)
+    all_details = extract_all_details(
+        WEBSITE_URL, system_prompt_for_links, user_prompt_for_links
+    )
     # print("All Details: ", all_details)
 
     system_prompt = "You are an assistant that analyzes the contents of several relevant pages from a company website \
