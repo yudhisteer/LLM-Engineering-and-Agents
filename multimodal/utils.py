@@ -44,9 +44,19 @@ def get_gemini_response(user_prompt: str, model: str = "gemini-2.0-flash-exp") -
         raise Exception(f"Error getting Gemini response: {str(e)}")
 
 
+def configure_openai_messages(system_message: str, user_prompt: str) -> list[dict]:
+    return [
+        {"role": "system", "content": system_message},
+        {"role": "user", "content": user_prompt},
+    ]
+
+def configure_claude_messages(user_prompt: str) -> list[dict]:
+    return [
+        {"role": "user", "content": user_prompt},
+    ]
+
 def get_openai_response(
-    system_message: str,
-    user_prompt: str,
+    messages: list[dict],
     model: str = "gpt-4o-mini",
     temperature: float = 0,
     response_format: dict = None,
@@ -54,10 +64,7 @@ def get_openai_response(
     try:
         response = openai_client.chat.completions.create(
             model=model,
-            messages=[
-                {"role": "system", "content": system_message},
-                {"role": "user", "content": user_prompt},
-            ],
+            messages=messages,
             temperature=temperature,
             response_format=response_format,
         )
@@ -67,9 +74,9 @@ def get_openai_response(
         raise Exception(f"Error getting chat completion: {str(e)}")
 
 
-def get_anthropic_response(
+def get_claude_response(
     system_message: str,
-    user_prompt: str,
+    messages: list[dict],
     model: str = "claude-3-5-sonnet-latest",
     temperature: float = 0.7,
     max_tokens: int = 100,
@@ -80,9 +87,7 @@ def get_anthropic_response(
             max_tokens=max_tokens,
             temperature=temperature,
             system=system_message,
-            messages=[
-                {"role": "user", "content": user_prompt},
-                ],
+            messages=messages,
             )
         return message.content[0].text
 
@@ -90,19 +95,78 @@ def get_anthropic_response(
         raise Exception(f"Error getting anthropic response: {str(e)}")
 
 
-def get_deepseek_response(system_message: str, user_prompt: str, model: str = "deepseek-chat", temperature: float = 0.0) -> str:
+def get_deepseek_response(messages: list[dict], model: str = "deepseek-chat", temperature: float = 0.0) -> str:
     try:
         response = deepseek_via_openai_client.chat.completions.create(
             model=model,
-            messages=[
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": user_prompt}
-            ],
+            messages=messages,
             temperature=temperature,
             )
         return response.choices[0].message.content
 
     except Exception as e:
         raise Exception(f"Error getting deepseek response: {str(e)}")
+    
 
 
+def openai_assistant_response(openai_messages: list[str], claude_messages: list[str], 
+                             deepseek_messages: list[str] = None, openai_system: str = "") -> str:
+    
+    messages = [{"role": "system", "content": openai_system}]
+    
+    # Check if deepseek_messages is provided
+    if deepseek_messages is None:
+        # Only use openai and claude messages
+        for openai_message, claude_message in zip(openai_messages, claude_messages):
+            messages.append({"role": "assistant", "content": openai_message})
+            messages.append({"role": "user", "content": claude_message})
+    else:
+        # Use all three message lists
+        for openai_message, claude_message, deepseek_message in zip(openai_messages, claude_messages, deepseek_messages):
+            messages.append({"role": "assistant", "content": f"[OpenAI]: {openai_message}"})
+            messages.append({"role": "user", "content": f"[Claude]: {claude_message}"})
+            messages.append({"role": "user", "content": f"[DeepSeek]: {deepseek_message}"})
+    
+    response_openai = get_openai_response(messages)
+    return response_openai
+
+
+def claude_assistant_response(openai_messages: list[str], 
+                              claude_messages: list[str], 
+                             deepseek_messages: list[str] = None, 
+                             claude_system: str = "") -> str:
+    messages = []
+    
+    # Check if deepseek_messages is provided
+    if deepseek_messages is None:
+        # Only use openai and claude messages
+        for openai_message, claude_message in zip(openai_messages, claude_messages):
+            messages.append({"role": "user", "content": openai_message})
+            messages.append({"role": "assistant", "content": claude_message})
+    else:
+        # Use all three message lists
+        for openai_message, claude_message, deepseek_message in zip(openai_messages, claude_messages, deepseek_messages):
+            messages.append({"role": "user", "content": f"[OpenAI]: {openai_message}"})
+            messages.append({"role": "assistant", "content": "[Claude]: {claude_message}"})
+            messages.append({"role": "user", "content": f"[DeepSeek]: {deepseek_message}"})
+    
+    # Add the final openai message
+    messages.append({"role": "user", "content": openai_messages[-1]})
+    
+    response_claude = get_claude_response(claude_system, messages)
+    return response_claude
+
+def deepseek_assistant_response(openai_messages: list[str], 
+                                claude_messages: list[str], 
+                                deepseek_messages: list[str] = None, 
+                                deepseek_system: str = "") -> str:
+    
+    messages = [{"role": "system", "content": deepseek_system}]
+
+    for openai_message, claude_message, deepseek_message in zip(openai_messages, claude_messages, deepseek_messages):
+        messages.append({"role": "user", "content": f"[OpenAI]: {openai_message}"})
+        messages.append({"role": "user", "content": "[Claude]: {claude_message}"})
+        messages.append({"role": "assistant", "content": f"[DeepSeek]: {deepseek_message}"})
+    
+    response_deepseek = get_deepseek_response(messages)
+    return response_deepseek
