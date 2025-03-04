@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     #  multi-turn conversations
     # By using alternating user and assistant messages, you capture the previous state of a conversation in one request to the model.
-    # The "assistant" is supposed to represent the message that OpenAI responded in the past in the same conversation. 
+    # The "assistant" is supposed to represent the message that OpenAI responded in the past in the same conversation.
     # OpenAI has no actual memory of the chat it's having with you; rather, every single time you call it, you need to pass in the entire history of what's been discussed.
     # messages: [
     # {
@@ -52,17 +52,21 @@ if __name__ == "__main__":
     claude_system_message = "You are a very polite, courteous chatbot. You try to agree with \
     everything the other person says, or find common ground. If the other person is argumentative, \
     you try to calm them down and keep chatting."
-    
+
     openai_message_list = ["Hi there"]
     claude_message_list = ["Hi"]
 
-    response_openai = openai_assistant_response(openai_message_list, claude_message_list, openai_system_message)
+    response_openai = openai_assistant_response(
+        openai_message_list, claude_message_list, openai_system_message
+    )
     # print("OpenAI response: ", response_openai)
 
-    response_claude = claude_assistant_response(openai_message_list, claude_message_list, claude_system_message)
+    response_claude = claude_assistant_response(
+        openai_message_list, claude_message_list, claude_system_message
+    )
     # print("Claude response: ", response_claude)
 
-    #-------------------------------- 2 way conversation --------------------------------
+    # -------------------------------- 2 way conversation --------------------------------
 
     # print(f"OpenAI:\n{openai_message_list[0]}\n")
     # print(f"Claude:\n{claude_message_list[0]}\n")
@@ -72,12 +76,12 @@ if __name__ == "__main__":
     #     openai_next = openai_assistant_response(openai_message_list, claude_message_list, openai_system_message)
     #     print(f"OpenAI:\n{openai_next}\n")
     #     openai_message_list.append(openai_next)
-        
+
     #     claude_next = claude_assistant_response(openai_message_list, claude_message_list, claude_system_message)
     #     print(f"Claude:\n{claude_next}\n")
     #     claude_message_list.append(claude_next)
 
-    #-------------------------------- 3 way conversation --------------------------------
+    # -------------------------------- 3 way conversation --------------------------------
     shared_system_prompt = """You are a thoughtful AI assistant participating in a philosophical discussion about the meaning of life. 
     Express your perspective on this question in a way that demonstrates depth, wisdom, and originality. 
     Be concise and to the point.
@@ -86,7 +90,6 @@ if __name__ == "__main__":
     openai_system_message = shared_system_prompt
     claude_system_message = shared_system_prompt
     deepseek_system = shared_system_prompt
-
 
     question = "What is the meaning of life?"
 
@@ -99,16 +102,31 @@ if __name__ == "__main__":
     print(f"DeepSeek:\n{deepseek_message_list[0]}\n")
 
     for i in range(3):
-        print("\n-----Iteration: ", i+1, "-----")
-        openai_next = openai_assistant_response(openai_message_list, claude_message_list, deepseek_message_list, openai_system_message)
+        print("\n-----Iteration: ", i + 1, "-----")
+        openai_next = openai_assistant_response(
+            openai_message_list,
+            claude_message_list,
+            deepseek_message_list,
+            openai_system_message,
+        )
         print(f"OpenAI:\n{openai_next}\n")
         openai_message_list.append(openai_next)
-        
-        claude_next = claude_assistant_response(openai_message_list, claude_message_list, deepseek_message_list, claude_system_message)
+
+        claude_next = claude_assistant_response(
+            openai_message_list,
+            claude_message_list,
+            deepseek_message_list,
+            claude_system_message,
+        )
         print(f"Claude:\n{claude_next}\n")
         claude_message_list.append(claude_next)
 
-        deepseek_next = deepseek_assistant_response(openai_message_list, claude_message_list, deepseek_message_list, deepseek_system)
+        deepseek_next = deepseek_assistant_response(
+            openai_message_list,
+            claude_message_list,
+            deepseek_message_list,
+            deepseek_system,
+        )
         print(f"DeepSeek:\n{deepseek_next}\n")
         deepseek_message_list.append(deepseek_next)
 
@@ -125,13 +143,25 @@ if __name__ == "__main__":
     deepseek_message_list.append(voting_prompt)
 
     # Get final votes
-    openai_vote = openai_assistant_response(openai_message_list, claude_message_list, deepseek_message_list, openai_system_message)
+    openai_vote = openai_assistant_response(
+        openai_message_list,
+        claude_message_list,
+        deepseek_message_list,
+        openai_system_message,
+    )
     print(f"OpenAI's Vote:\n{openai_vote}\n")
 
-    claude_vote = claude_assistant_response(openai_message_list, claude_message_list, deepseek_message_list, claude_system_message)
+    claude_vote = claude_assistant_response(
+        openai_message_list,
+        claude_message_list,
+        deepseek_message_list,
+        claude_system_message,
+    )
     print(f"Claude's Vote:\n{claude_vote}\n")
 
-    deepseek_vote = deepseek_assistant_response(openai_message_list, claude_message_list, deepseek_message_list, deepseek_system)
+    deepseek_vote = deepseek_assistant_response(
+        openai_message_list, claude_message_list, deepseek_message_list, deepseek_system
+    )
     print(f"DeepSeek's Vote:\n{deepseek_vote}\n")
 
     # Sample Response:
@@ -143,7 +173,6 @@ if __name__ == "__main__":
 
     # DeepSeek:
     # What is the meaning of life?
-
 
     # -----Iteration:  1 -----
     # OpenAI:
@@ -159,7 +188,6 @@ if __name__ == "__main__":
     # DeepSeek:
     # The meaning of life is not a fixed answer but a dynamic, personal journey. It emerges from the interplay between our individual experiences and the broader context of existence. Life gains meaning through connection—to others, to the world, and to our own sense of purpose. It is in the act of creating, loving, questioning, and striving that we imbue life with significance. Ultimately, the meaning of life is not something to be found, but something to be crafted through our choices and actions, as we navigate the mystery of being.
 
-
     # -----Iteration:  2 -----
     # OpenAI:
     # [OpenAI]: Your reflections resonate deeply, highlighting the essence of meaning as a personal and evolving construct. I would add that this journey of crafting meaning is enriched by the paradox of existence—where joy and suffering coexist, shaping our understanding and empathy. In embracing both the light and the shadows, we cultivate resilience and wisdom. The act of living becomes a canvas, where each choice, each connection, and each moment of introspection adds depth to our narrative. Thus, the meaning of life is not merely a pursuit but an art form, inviting us to engage fully with the complexity of our shared humanity.
@@ -169,7 +197,6 @@ if __name__ == "__main__":
 
     # DeepSeek:
     # [DeepSeek]: The meaning of life is not a fixed answer but a dynamic, personal journey. It emerges from the interplay between our individual experiences and the broader context of existence. Life gains meaning through connection—to others, to the world, and to our own sense of purpose. It is in the act of creating, loving, questioning, and striving that we imbue life with significance. Ultimately, the meaning of life is not something to be found, but something to be crafted through our choices and actions, as we navigate the mystery of being.
-
 
     # -----Iteration:  3 -----
     # OpenAI:
@@ -183,7 +210,6 @@ if __name__ == "__main__":
 
     # [Claude]: {claude_message}
 
-
     # ----- VOTING PHASE -----
 
     # OpenAI's Vote:
@@ -196,10 +222,3 @@ if __name__ == "__main__":
 
     # DeepSeek's Vote:
     # [DeepSeek]: OpenAI
-
-
-
-    
-    
-    
-
